@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        fetch-depth: 3
+        fetch-depth: 0
     - uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python }}
@@ -26,8 +26,7 @@ jobs:
     - name: new tests fail without the fix
       shell: bash
       run: |
-        git show HEAD~1:patroni/postgresql/config.py > /dev/null
-        git checkout HEAD~2 -- patroni/postgresql/config.py
+        git checkout 3a89e19 -- patroni/postgresql/config.py   # master before the fix
         set +e
         python -m pytest -q tests/test_postgresql.py -k "unix_local_address or pgpass_content or resolve_connection_addresses"
         code=$?
