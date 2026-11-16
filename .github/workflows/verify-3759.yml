@@ -28,7 +28,7 @@ jobs:
       run: |
         git checkout 3a89e19 -- patroni/postgresql/config.py   # master before the fix
         set +e
-        python -m pytest -q tests/test_postgresql.py -k "unix_local_address or pgpass_content or resolve_connection_addresses"
+        python -m pytest -q tests/test_postgresql.py -k "unix_local_address or resolve_connection_addresses or custom_bootstrap_on_windows"
         code=$?
         git checkout HEAD -- patroni/postgresql/config.py
         echo "exit without fix: $code"
