@@ -1,0 +1,36 @@
+name: verify-3759
+on:
+  push:
+    branches: [verify/3759]
+jobs:
+  unit:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-latest]
+        python: ['3.8', '3.12']
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 3
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python }}
+    - name: Install dependencies
+      run: python .github/workflows/install_deps.py
+    - name: flake8
+      run: python -m flake8 patroni/postgresql/config.py tests/test_postgresql.py
+    - name: tests (with the fix)
+      run: python -m pytest -q tests/test_postgresql.py tests/test_config.py
+    - name: new tests fail without the fix
+      shell: bash
+      run: |
+        git show HEAD~1:patroni/postgresql/config.py > /dev/null
+        git checkout HEAD~2 -- patroni/postgresql/config.py
+        set +e
+        python -m pytest -q tests/test_postgresql.py -k "unix_local_address or pgpass_content or resolve_connection_addresses"
+        code=$?
+        git checkout HEAD -- patroni/postgresql/config.py
+        echo "exit without fix: $code"
+        test "$code" -ne 0
